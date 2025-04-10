@@ -1,10 +1,25 @@
 "use client";
 
-import { useState } from 'react';
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+
+interface JobApplication {
+  id: string;
+  company: string;
+  role: string;
+  status: string;
+  dateOfApplication: string;
+  link: string;
+}
 
 const JobList = () => {
-  const [applications, setApplications] = useState([
+  const [applications, setApplications] = useState<JobApplication[]>([
     {
       id: '1',
       company: 'Google',
@@ -22,6 +37,23 @@ const JobList = () => {
       link: 'https://facebook.com/careers'
     }
   ]);
+  const [filteredApplications, setFilteredApplications] = useState<JobApplication[]>(applications);
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
+
+  useEffect(() => {
+    let newFilteredApplications = [...applications];
+
+    if (statusFilter) {
+      newFilteredApplications = newFilteredApplications.filter(app => app.status === statusFilter);
+    }
+
+    if (dateFilter) {
+      newFilteredApplications = newFilteredApplications.filter(app => app.dateOfApplication === format(dateFilter, 'yyyy-MM-dd'));
+    }
+
+    setFilteredApplications(newFilteredApplications);
+  }, [statusFilter, dateFilter, applications]);
 
   const handleDelete = (id: string) => {
     setApplications(applications.filter(app => app.id !== id));
@@ -30,6 +62,57 @@ const JobList = () => {
   return (
     <div>
       <h2 className="text-xl font-bold mb-2">Current Applications</h2>
+
+      <div className="flex gap-4 mb-4">
+        {/* Status Filter */}
+        <Select onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">All</SelectItem>
+            <SelectItem value="Applied">Applied</SelectItem>
+            <SelectItem value="Interview">Interview</SelectItem>
+            <SelectItem value="Offer">Offer</SelectItem>
+            <SelectItem value="Rejected">Rejected</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Date Filter */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              className={cn(
+                "w-[180px] justify-start text-left font-normal",
+                !dateFilter && "text-muted-foreground"
+              )}
+            >
+              {dateFilter ? (
+                format(dateFilter, "yyyy-MM-dd")
+              ) : (
+                <span>Filter by Date</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="center" side="bottom">
+            <Calendar
+              mode="single"
+              selected={dateFilter}
+              onSelect={setDateFilter}
+              disabled={(date) =>
+                date > new Date()
+              }
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+        <Button onClick={() => {
+          setStatusFilter('');
+          setDateFilter(undefined);
+        }}>Clear Filters</Button>
+      </div>
+
       <div className="overflow-x-auto">
         <table className="min-w-full leading-normal">
           <thead>
@@ -55,7 +138,7 @@ const JobList = () => {
             </tr>
           </thead>
           <tbody>
-            {applications.map(app => (
+            {filteredApplications.map(app => (
               <tr key={app.id}>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   <p className="text-gray-900 whitespace-no-wrap">{app.company}</p>
@@ -92,5 +175,3 @@ const JobList = () => {
 };
 
 export default JobList;
-
-    
