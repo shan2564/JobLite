@@ -38,7 +38,7 @@ const JobList = () => {
     }
   ]);
   const [filteredApplications, setFilteredApplications] = useState<JobApplication[]>(applications);
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
@@ -65,12 +65,12 @@ const JobList = () => {
 
       <div className="flex gap-4 mb-4">
         {/* Status Filter */}
-        <Select onValueChange={setStatusFilter}>
+        <Select onValueChange={(value) => setStatusFilter(value === "" ? undefined : value)}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All</SelectItem>
+            <SelectItem value={undefined}>All</SelectItem>
             <SelectItem value="Applied">Applied</SelectItem>
             <SelectItem value="Interview">Interview</SelectItem>
             <SelectItem value="Offer">Offer</SelectItem>
@@ -108,7 +108,7 @@ const JobList = () => {
           </PopoverContent>
         </Popover>
         <Button onClick={() => {
-          setStatusFilter('');
+          setStatusFilter(undefined);
           setDateFilter(undefined);
         }}>Clear Filters</Button>
       </div>
@@ -175,3 +175,4 @@ const JobList = () => {
 };
 
 export default JobList;
+
